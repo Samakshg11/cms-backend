@@ -1,7 +1,12 @@
 const jwt = require("jsonwebtoken"); // jwt import
 module.exports = (req, res, next) => {
-  // header se token nikaalna
-  const token = req.headers.authorization?.split(" ")[1];
+  const authHeader = req.headers.authorization || "";
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return res.status(401).json({ message: "Invalid authorization header" });
+  }
+
   // agar token nahi mila
   if (!token)
     return res.status(401).json({ message: "No token" });
