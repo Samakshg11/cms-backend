@@ -4,6 +4,8 @@ const connectDB = require("./src/config/db");
 
 connectDB();
 
-app.listen(process.env.PORT, () =>
-    console.log(`server running ${process.env.PORT}`),
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () =>
+    console.log(`server running ${PORT}`),
 );
