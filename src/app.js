@@ -13,4 +13,8 @@ app.get("/", (req, res) => res.send("CMS API Running"));
 app.use("/api/auth", require("./routes/auth.routes")); 
 app.use("/api/artifacts", require("./routes/artifact.routes"));
 
+app.use((req, res) => {
+	res.status(404).json({ message: "Route not found" });
+});
+
 module.exports = app;
