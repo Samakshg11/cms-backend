@@ -3,12 +3,14 @@ const bcrypt = require("bcrypt");
 
 const otpSchema = new mongoose.Schema(
   {
-    email: String,      
-    otp: String,        
-    expiresAt: Date     
+    email: { type: String, required: true },
+    otp: { type: String, required: true },
+    expiresAt: { type: Date, required: true }
   },
   { timestamps: true }  
 );
+
+otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // save se pehle otp hash
 otpSchema.pre("save", async function () {
