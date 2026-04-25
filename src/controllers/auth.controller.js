@@ -15,25 +15,34 @@ const transporter = nodemailer.createTransport({
   }
 });
 exports.sendOTP = async (req, res) => {
-  const { email } = req.body; // body se email lena
-  const otp = otpGenerator.generate(6, { digits: true });
+  try {
+    const { email } = req.body; // body se email lena
 
-  // 5 minute expiry set
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
-  // otp database me save
-  await OTP.create({ email, otp, expiresAt });
+    const otp = otpGenerator.generate(6, { digits: true });
 
-  // email send
-  await transporter.sendMail({
-    to: email, // receiver
-    subject: "Your OTP Code", 
-    text: `Your OTP is ${otp}` 
-  });
+    // 5 minute expiry set
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-  res.status(200).json({
-    message: "dekh aa gyi hogi"
-  });
+    // otp database me save
+    await OTP.create({ email, otp, expiresAt });
+
+    // email send
+    await transporter.sendMail({
+      to: email, // receiver
+      subject: "Your OTP Code", 
+      text: `Your OTP is ${otp}` 
+    });
+
+    res.status(200).json({
+      message: "OTP sent successfully"
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to send OTP" });
+  }
 };
 
 exports.verifyOTP = async (req, res) => {
