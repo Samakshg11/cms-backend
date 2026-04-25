@@ -69,9 +69,19 @@ exports.verifyOTP = async (req, res) => {
 exports.signup = async (req, res) => {
 
   const { email, password } = req.body; // body se data lena
+
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ message: "User already exists" });
+  }
+
   // new user create 
   const user = await User.create({ email, password });
-  res.json(user); 
+  res.status(201).json({
+    id: user._id,
+    email: user.email,
+    isVerified: user.isVerified
+  }); 
 };
 
 exports.login = async (req, res) => {
