@@ -1,105 +1,91 @@
 const User = require("../models/user.model");
-const OTP = require("../models/otp.model");   
+const OTP = require("../models/otp.model");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken"); // token generate
-const otpGenerator = require("otp-generator"); // otp create
-const nodemailer = require("nodemailer"); // email send
+const jwt = require("jsonwebtoken");
+const otpGenerator = require("otp-generator");
+const nodemailer = require("nodemailer");
+const asyncHandler = require("../utils/async-handler");
 
 
-// email transporter setup
 const transporter = nodemailer.createTransport({
-  service: "gmail", // gmail service
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, // gmail id hai 
-    pass: process.env.EMAIL_PASS  // gmail app password hai 
-  }
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
-exports.sendOTP = async (req, res) => {
-  try {
-    const { email } = req.body; // body se email lena
+exports.sendOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const otp = otpGenerator.generate(6, { digits: true });
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
-    }
+  await OTP.create({ email, otp, expiresAt });
+  await transporter.sendMail({
+    to: email,
+    subject: "Your OTP Code",
+    text: `Your OTP is ${otp}`,
+  });
 
-    const otp = otpGenerator.generate(6, { digits: true });
+  res.status(200).json({
+    message: "OTP sent successfully",
+  });
+});
 
-    // 5 minute expiry set
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-    // otp database me save
-    await OTP.create({ email, otp, expiresAt });
-
-    // email send
-    await transporter.sendMail({
-      to: email, // receiver
-      subject: "Your OTP Code", 
-      text: `Your OTP is ${otp}` 
-    });
-
-    res.status(200).json({
-      message: "OTP sent successfully"
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to send OTP" });
-  }
-};
-
-exports.verifyOTP = async (req, res) => {
-
-  const { email, otp } = req.body; // body se email & otp leta hai
-  // latest otp record find
+exports.verifyOTP = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
   const record = await OTP.findOne({ email }).sort({ createdAt: -1 });
-  if (!record) 
-    return res.status(400).json({ message: "No OTP found" });
-  // expiry check krta hai y function
-  if (record.expiresAt < new Date())
-    return res.status(400).json({ message: "OTP khtam " });
-  // otp compare krta hai 
+  if (!record) {
+    return res.status(400).json({ message: "No OTP found for this email" });
+  }
+
+  if (record.expiresAt < new Date()) {
+    return res.status(400).json({ message: "OTP has expired" });
+  }
+
   const match = await bcrypt.compare(otp, record.otp);
-  if (!match)
-    return res.status(400).json({ message: "GLT OTP" });
-  // user verify update
+  if (!match) {
+    return res.status(400).json({ message: "Invalid OTP" });
+  }
+
   await User.updateOne({ email }, { isVerified: true });
-  res.json({ message: "Email Sahi hai lala" });
-};
+  res.json({ message: "Email verified successfully" });
+});
 
-
-
-exports.signup = async (req, res) => {
-
-  const { email, password } = req.body; // body se data lena
-
+exports.signup = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     return res.status(400).json({ message: "User already exists" });
   }
 
-  // new user create 
   const user = await User.create({ email, password });
   res.status(201).json({
     id: user._id,
     email: user.email,
-    isVerified: user.isVerified
-  }); 
-};
+    isVerified: user.isVerified,
+  });
+});
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body; // login data body s le rha hai 
-
-  // user ko search liya jaa rha hai by email
+exports.login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user)
-    return res.status(400).json({ message: "Aisa koi user nhi hai" });
-  // password compare
+  if (!user) {
+    return res.status(400).json({ message: "User not found" });
+  }
+
   const match = await bcrypt.compare(password, user.password);
-  if (!match)
-    return res.status(400).json({ message: "Galat Paasword hai" });
-  // token generate kr rha hai y
+  if (!match) {
+    return res.status(400).json({ message: "Incorrect password" });
+  }
+
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({ message: "JWT secret is not configured" });
+  }
+
   const token = jwt.sign(
-    { id: user._id }, // payload
-    process.env.JWT_SECRET, // secret key
-    { expiresIn: "7d" } // token expiry
+    { id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
   );
   res.json({ token });
-};
+});
