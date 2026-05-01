@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const errorMiddleware = require("./middlewares/error.middleware");
 
 const app = express();
 
@@ -23,5 +24,7 @@ app.use("/api/artifacts", require("./routes/artifact.routes"));
 app.use((req, res) => {
 	res.status(404).json({ message: "Route not found" });
 });
+
+app.use(errorMiddleware);
 
 module.exports = app;
