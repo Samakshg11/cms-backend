@@ -1,13 +1,9 @@
-const router = require("express").Router(); // router create
+const router = require("express").Router();
 
-const ctrl = require("../controllers/artifact.controller"); // controller import
-const auth = require("../middlewares/auth.middleware"); // auth middleware
+const ctrl = require("../controllers/artifact.controller");
+const auth = require("../middlewares/auth.middleware");
 
-
-// create artifact (protected)
 router.post("/", auth, ctrl.createArtifact);
-
-// get artifacts (protected)
 router.get("/", auth, ctrl.getArtifacts);
 
-module.exports = router; // router export
+module.exports = router;
