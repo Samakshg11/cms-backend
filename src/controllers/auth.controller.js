@@ -19,6 +19,7 @@ exports.sendOTP = asyncHandler(async (req, res) => {
   const otp = otpGenerator.generate(6, { digits: true });
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
+  await OTP.deleteMany({ email });
   await OTP.create({ email, otp, expiresAt });
   await transporter.sendMail({
     to: email,
@@ -47,7 +48,11 @@ exports.verifyOTP = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid OTP" });
   }
 
-  await User.updateOne({ email }, { isVerified: true });
+  await Promise.all([
+    User.updateOne({ email }, { isVerified: true }),
+    OTP.deleteMany({ email }),
+  ]);
+
   res.json({ message: "Email verified successfully" });
 });
 
@@ -73,7 +78,7 @@ exports.login = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "User not found" });
   }
 
-  const match = await bcrypt.compare(password, user.password);
+  const match = await user.comparePassword(password);
   if (!match) {
     return res.status(400).json({ message: "Incorrect password" });
   }
