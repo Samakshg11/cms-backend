@@ -6,14 +6,19 @@ const errorMiddleware = require("./middlewares/error.middleware");
 const app = express();
 
 app.use(cors());
-app.use(express.json( { limit: "10mb" }));
-app.use(morgan("dev"));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan("dev"));
+}
 
 app.get("/", (req, res) => res.send("CMS API Running"));
 app.get("/health", (req, res) => {
 	res.status(200).json({
 		status: "ok",
 		uptime: process.uptime(),
+		environment: process.env.NODE_ENV,
 		timestamp: new Date().toISOString(),
 	});
 });
@@ -22,7 +27,11 @@ app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/artifacts", require("./routes/artifact.routes"));
 
 app.use((req, res) => {
-	res.status(404).json({ message: "Route not found" });
+	res.status(404).json({
+		message: "Route not found",
+		path: req.originalUrl,
+		method: req.method,
+	});
 });
 
 app.use(errorMiddleware);
