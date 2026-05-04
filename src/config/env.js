@@ -1,4 +1,5 @@
 const requiredVars = ["MONGO_URI", "JWT_SECRET", "EMAIL_USER", "EMAIL_PASS"];
+const allowedNodeEnvs = new Set(["development", "test", "production"]);
 
 const validateEnv = () => {
   const missing = requiredVars.filter((name) => !process.env[name]);
@@ -9,6 +10,21 @@ const validateEnv = () => {
 
   if (!process.env.NODE_ENV) {
     process.env.NODE_ENV = "development";
+  }
+
+  if (!allowedNodeEnvs.has(process.env.NODE_ENV)) {
+    throw new Error(
+      `Invalid NODE_ENV: ${process.env.NODE_ENV}. Expected one of development, test, production`
+    );
+  }
+
+  if (process.env.PORT !== undefined) {
+    const parsedPort = Number(process.env.PORT);
+    const isValidPort = Number.isInteger(parsedPort) && parsedPort > 0 && parsedPort <= 65535;
+
+    if (!isValidPort) {
+      throw new Error(`Invalid PORT: ${process.env.PORT}`);
+    }
   }
 };
 
