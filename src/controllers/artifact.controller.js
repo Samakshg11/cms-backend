@@ -18,20 +18,18 @@ exports.getArtifacts = asyncHandler(async (req, res) => {
   const filter = { createdBy: req.user.id };
 
   if (searchQuery) {
-    filter.$or = [
-      { title: { $regex: searchQuery, $options: "i" } },
-      { description: { $regex: searchQuery, $options: "i" } },
-    ];
+    filter.$text = { $search: searchQuery };
   }
 
-  const [artifacts, total] = await Promise.all([
-    Artifact.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("createdBy", "email"),
-    Artifact.countDocuments(filter),
-  ]);
+  const query = Artifact.find(filter).skip(skip).limit(limit).populate("createdBy", "email");
+
+  if (searchQuery) {
+    query.select({ score: { $meta: "textScore" } }).sort({ score: { $meta: "textScore" } });
+  } else {
+    query.sort({ createdAt: -1 });
+  }
+
+  const [artifacts, total] = await Promise.all([query, Artifact.countDocuments(filter)]);
 
   res.json({
     data: artifacts,

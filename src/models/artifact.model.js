@@ -1,6 +1,5 @@
-const mongoose = require("mongoose"); 
+const mongoose = require("mongoose");
 
-// artifact schema define
 const artifactSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true, maxlength: 120 },
@@ -16,5 +15,7 @@ const artifactSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+artifactSchema.index({ title: "text", description: "text" });
 
 module.exports = mongoose.model("Artifact", artifactSchema);
