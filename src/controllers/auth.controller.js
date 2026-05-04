@@ -88,6 +88,10 @@ exports.login = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Incorrect password" });
   }
 
+  if (!user.isVerified) {
+    return res.status(403).json({ message: "Please verify your email before logging in" });
+  }
+
   if (!process.env.JWT_SECRET) {
     return res.status(500).json({ message: "JWT secret is not configured" });
   }
