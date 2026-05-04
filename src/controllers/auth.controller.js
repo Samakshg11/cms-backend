@@ -16,7 +16,12 @@ const transporter = nodemailer.createTransport({
 });
 exports.sendOTP = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  const otp = otpGenerator.generate(6, { digits: true });
+  const otp = otpGenerator.generate(6, {
+    digits: true,
+    lowerCaseAlphabets: false,
+    upperCaseAlphabets: false,
+    specialChars: false,
+  });
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
   await OTP.deleteMany({ email });
