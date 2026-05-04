@@ -80,12 +80,12 @@ exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
-    return res.status(400).json({ message: "User not found" });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   const match = await user.comparePassword(password);
   if (!match) {
-    return res.status(400).json({ message: "Incorrect password" });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   if (!user.isVerified) {
