@@ -1,10 +1,15 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = (req, res, next) => {
-  const authHeader = req.headers.authorization || "";
-  const [scheme, token] = authHeader.split(" ");
+  const authHeader = req.headers.authorization;
 
-  if (scheme !== "Bearer" || !token) {
+  if (!authHeader) {
+    return res.status(401).json({ message: "Authorization header is required" });
+  }
+
+  const [scheme, token] = authHeader.trim().split(/\s+/);
+
+  if (scheme?.toLowerCase() !== "bearer" || !token) {
     return res.status(401).json({ message: "Invalid authorization header" });
   }
 
