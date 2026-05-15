@@ -11,10 +11,10 @@ exports.createArtifact = asyncHandler(async (req, res) => {
 });
 
 exports.getArtifacts = asyncHandler(async (req, res) => {
-  const page = Math.max(Number(req.query.page) || 1, 1);
-  const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 20;
   const skip = (page - 1) * limit;
-  const searchQuery = typeof req.query.q === "string" ? req.query.q.trim() : "";
+  const searchQuery = typeof req.query.q === "string" ? req.query.q : "";
   const filter = { createdBy: req.user.id };
 
   if (searchQuery) {

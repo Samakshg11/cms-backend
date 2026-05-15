@@ -32,12 +32,31 @@ const validateArtifactQuery = (req, res, next) => {
     return res.status(400).json({ message: "page must be a positive integer" });
   }
 
-  if (limit !== undefined && (!Number.isInteger(Number(limit)) || Number(limit) < 1 || Number(limit) > 100)) {
+  if (
+    limit !== undefined &&
+    (!Number.isInteger(Number(limit)) || Number(limit) < 1 || Number(limit) > 100)
+  ) {
     return res.status(400).json({ message: "limit must be an integer between 1 and 100" });
   }
 
   if (q !== undefined && typeof q !== "string") {
     return res.status(400).json({ message: "q must be a string" });
+  }
+
+  if (q !== undefined && q.trim().length > 200) {
+    return res.status(400).json({ message: "q must be 200 characters or fewer" });
+  }
+
+  if (page !== undefined) {
+    req.query.page = Number(page);
+  }
+
+  if (limit !== undefined) {
+    req.query.limit = Number(limit);
+  }
+
+  if (q !== undefined) {
+    req.query.q = q.trim();
   }
 
   next();
