@@ -38,6 +38,8 @@ exports.getArtifacts = asyncHandler(async (req, res) => {
       limit,
       total,
       totalPages: Math.ceil(total / limit),
+      hasPrevPage: page > 1,
+      hasNextPage: page * limit < total,
     },
   });
 });
