@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
 const asyncHandler = require("../utils/async-handler");
-
+const { normalizeEmail } = require("../utils/validators");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -14,8 +14,12 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
+const createAuthToken = (userId) =>
+  jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
 exports.sendOTP = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+  const email = normalizeEmail(req.body.email);
   const otp = otpGenerator.generate(6, {
     digits: true,
     lowerCaseAlphabets: false,
@@ -38,7 +42,8 @@ exports.sendOTP = asyncHandler(async (req, res) => {
 });
 
 exports.verifyOTP = asyncHandler(async (req, res) => {
-  const { email, otp } = req.body;
+  const email = normalizeEmail(req.body.email);
+  const { otp } = req.body;
   const record = await OTP.findOne({ email }).sort({ createdAt: -1 });
   if (!record) {
     return res.status(400).json({ message: "No OTP found for this email" });
@@ -62,7 +67,8 @@ exports.verifyOTP = asyncHandler(async (req, res) => {
 });
 
 exports.signup = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const email = normalizeEmail(req.body.email);
+  const { password } = req.body;
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     return res.status(400).json({ message: "User already exists" });
@@ -77,7 +83,8 @@ exports.signup = asyncHandler(async (req, res) => {
 });
 
 exports.login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const email = normalizeEmail(req.body.email);
+  const { password } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     return res.status(401).json({ message: "Invalid email or password" });
@@ -96,10 +103,6 @@ exports.login = asyncHandler(async (req, res) => {
     return res.status(500).json({ message: "JWT secret is not configured" });
   }
 
-  const token = jwt.sign(
-    { id: user._id },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+  const token = createAuthToken(user._id);
   res.json({ token });
 });
