@@ -1,5 +1,8 @@
 const requiredVars = ["MONGO_URI", "JWT_SECRET", "EMAIL_USER", "EMAIL_PASS"];
 const allowedNodeEnvs = new Set(["development", "test", "production"]);
+const DEFAULT_PORT = 5000;
+
+let resolvedPort = DEFAULT_PORT;
 
 const validateEnv = () => {
   const missing = requiredVars.filter((name) => !process.env[name]);
@@ -25,9 +28,16 @@ const validateEnv = () => {
     if (!isValidPort) {
       throw new Error(`Invalid PORT: ${process.env.PORT}`);
     }
+
+    resolvedPort = parsedPort;
+    return;
   }
+
+  resolvedPort = DEFAULT_PORT;
 };
 
 module.exports = {
+  DEFAULT_PORT,
+  getPort: () => resolvedPort,
   validateEnv,
 };
