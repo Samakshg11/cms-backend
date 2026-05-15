@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const errorMiddleware = require("./middlewares/error.middleware");
+const { name, version } = require("../package.json");
 
 const app = express();
 
@@ -15,23 +16,25 @@ if (process.env.NODE_ENV !== "test") {
 
 app.get("/", (req, res) => res.send("CMS API Running"));
 app.get("/health", (req, res) => {
-	res.status(200).json({
-		status: "ok",
-		uptime: process.uptime(),
-		environment: process.env.NODE_ENV,
-		timestamp: new Date().toISOString(),
-	});
+  res.status(200).json({
+    status: "ok",
+    service: name,
+    version,
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
 });
 
-app.use("/api/auth", require("./routes/auth.routes")); 
+app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/artifacts", require("./routes/artifact.routes"));
 
 app.use((req, res) => {
-	res.status(404).json({
-		message: "Route not found",
-		path: req.originalUrl,
-		method: req.method,
-	});
+  res.status(404).json({
+    message: "Route not found",
+    path: req.originalUrl,
+    method: req.method,
+  });
 });
 
 app.use(errorMiddleware);
