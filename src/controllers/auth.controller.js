@@ -44,6 +44,11 @@ exports.sendOTP = asyncHandler(async (req, res) => {
 exports.verifyOTP = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email);
   const { otp } = req.body;
+  const user = await User.findOne({ email }).select("_id");
+  if (!user) {
+    return res.status(404).json({ message: "User not found for this email" });
+  }
+
   const record = await OTP.findOne({ email }).sort({ createdAt: -1 });
   if (!record) {
     return res.status(400).json({ message: "No OTP found for this email" });
@@ -59,7 +64,7 @@ exports.verifyOTP = asyncHandler(async (req, res) => {
   }
 
   await Promise.all([
-    User.updateOne({ email }, { isVerified: true }),
+    User.updateOne({ _id: user._id }, { isVerified: true }),
     OTP.deleteMany({ email }),
   ]);
 
