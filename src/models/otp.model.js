@@ -7,7 +7,18 @@ const otpSchema = new mongoose.Schema(
     otp: { type: String, required: true },
     expiresAt: { type: Date, required: true },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      versionKey: false,
+      transform: (_, ret) => {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.otp;
+        return ret;
+      },
+    },
+  }
 );
 
 otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
