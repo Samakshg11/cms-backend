@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/user.model");
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -19,7 +20,22 @@ module.exports = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const user = await User.findById(decoded.id).select("_id email isVerified");
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Please verify your email before accessing this route" });
+    }
+
+    req.user = {
+      id: user._id.toString(),
+      email: user.email,
+      isVerified: user.isVerified,
+    };
+
     next();
   } catch (error) {
     error.statusCode = 401;
