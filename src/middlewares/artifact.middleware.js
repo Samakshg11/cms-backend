@@ -13,13 +13,15 @@ const validateCreateArtifact = (req, res, next) => {
     return res.status(400).json({ message: "Description must be a string" });
   }
 
-  if (typeof description === "string" && description.length > 2000) {
+  const normalizedDescription = typeof description === "string" ? description.trim() : undefined;
+
+  if (normalizedDescription !== undefined && normalizedDescription.length > 2000) {
     return res.status(400).json({ message: "Description must be 2000 characters or fewer" });
   }
 
   req.body.title = title.trim();
-  if (typeof description === "string") {
-    req.body.description = description.trim();
+  if (normalizedDescription !== undefined) {
+    req.body.description = normalizedDescription;
   }
 
   next();
