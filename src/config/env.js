@@ -4,16 +4,24 @@ const DEFAULT_PORT = 5000;
 
 let resolvedPort = DEFAULT_PORT;
 
+const readEnv = (name) => {
+  const value = process.env[name];
+  return typeof value === "string" ? value.trim() : "";
+};
+
 const validateEnv = () => {
-  const missing = requiredVars.filter((name) => !process.env[name]);
+  const missing = requiredVars.filter((name) => readEnv(name).length === 0);
 
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
   }
 
-  if (!process.env.NODE_ENV) {
-    process.env.NODE_ENV = "development";
-  }
+  requiredVars.forEach((name) => {
+    process.env[name] = readEnv(name);
+  });
+
+  const rawNodeEnv = readEnv("NODE_ENV");
+  process.env.NODE_ENV = rawNodeEnv || "development";
 
   if (!allowedNodeEnvs.has(process.env.NODE_ENV)) {
     throw new Error(
@@ -21,8 +29,10 @@ const validateEnv = () => {
     );
   }
 
-  if (process.env.PORT !== undefined) {
-    const parsedPort = Number(process.env.PORT);
+  const rawPort = readEnv("PORT");
+
+  if (rawPort.length > 0) {
+    const parsedPort = Number(rawPort);
     const isValidPort = Number.isInteger(parsedPort) && parsedPort > 0 && parsedPort <= 65535;
 
     if (!isValidPort) {
@@ -30,10 +40,12 @@ const validateEnv = () => {
     }
 
     resolvedPort = parsedPort;
+    process.env.PORT = String(parsedPort);
     return;
   }
 
   resolvedPort = DEFAULT_PORT;
+  process.env.PORT = String(DEFAULT_PORT);
 };
 
 module.exports = {
