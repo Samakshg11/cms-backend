@@ -25,5 +25,6 @@ const artifactSchema = new mongoose.Schema(
 );
 
 artifactSchema.index({ title: "text", description: "text" });
+artifactSchema.index({ createdBy: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Artifact", artifactSchema);
