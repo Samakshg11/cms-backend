@@ -22,7 +22,7 @@ const validateSignup = (req, res, next) => {
   if (!isStrongEnoughPassword(password)) {
     return res
       .status(400)
-      .json({ message: "Password must be at least 6 characters" });
+      .json({ message: "Password must be at least 8 characters and include upper, lower, and number" });
   }
 
   next();
