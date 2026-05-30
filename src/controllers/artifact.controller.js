@@ -25,7 +25,11 @@ exports.getArtifacts = asyncHandler(async (req, res) => {
     filter.$text = { $search: searchQuery };
   }
 
-  const query = Artifact.find(filter).skip(skip).limit(limit).populate("createdBy", "email");
+  const query = Artifact.find(filter)
+    .skip(skip)
+    .limit(limit)
+    .populate("createdBy", "email")
+    .lean();
 
   if (searchQuery) {
     query.select({ score: { $meta: "textScore" } }).sort({ score: { $meta: "textScore" } });
