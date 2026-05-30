@@ -34,6 +34,11 @@ exports.sendOTP = asyncHandler(async (req, res) => {
     specialChars: false,
   });
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+  const latestOtp = await OTP.findOne({ email }).select("createdAt").sort({ createdAt: -1 });
+
+  if (latestOtp && Date.now() - latestOtp.createdAt.getTime() < 60 * 1000) {
+    return res.status(429).json({ message: "Please wait 60 seconds before requesting another OTP" });
+  }
 
   await OTP.deleteMany({ email });
   await OTP.create({ email, otp, expiresAt });
