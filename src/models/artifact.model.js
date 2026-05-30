@@ -3,7 +3,13 @@ const mongoose = require("mongoose");
 const artifactSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true, maxlength: 120 },
-    description: { type: String, default: "", maxlength: 2000 },
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 2000,
+      set: (value) => (typeof value === "string" ? value.trim() : ""),
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
