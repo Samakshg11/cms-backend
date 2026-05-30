@@ -6,6 +6,7 @@ const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
 const asyncHandler = require("../utils/async-handler");
 const { normalizeEmail } = require("../utils/validators");
+const { getJwtConfig } = require("../config/env");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -15,8 +16,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const createAuthToken = (userId) =>
-  jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const createAuthToken = (userId) => {
+  const { expiresIn, issuer } = getJwtConfig();
+
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn,
+    issuer,
+  });
+};
 
 exports.sendOTP = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email);

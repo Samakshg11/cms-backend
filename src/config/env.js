@@ -1,9 +1,13 @@
 const requiredVars = ["MONGO_URI", "JWT_SECRET", "EMAIL_USER", "EMAIL_PASS"];
 const allowedNodeEnvs = new Set(["development", "test", "production"]);
 const DEFAULT_PORT = 5000;
+const DEFAULT_JWT_EXPIRES_IN = "7d";
+const DEFAULT_JWT_ISSUER = "cms-backend";
 
 let resolvedPort = DEFAULT_PORT;
 let resolvedCorsOrigins = ["*"];
+let resolvedJwtExpiresIn = DEFAULT_JWT_EXPIRES_IN;
+let resolvedJwtIssuer = DEFAULT_JWT_ISSUER;
 
 const readEnv = (name) => {
   const value = process.env[name];
@@ -54,11 +58,18 @@ const validateEnv = () => {
         .map((origin) => origin.trim())
         .filter(Boolean)
     : ["*"];
+
+  resolvedJwtExpiresIn = readEnv("JWT_EXPIRES_IN") || DEFAULT_JWT_EXPIRES_IN;
+  resolvedJwtIssuer = readEnv("JWT_ISSUER") || DEFAULT_JWT_ISSUER;
 };
 
 module.exports = {
   DEFAULT_PORT,
   getCorsOrigins: () => resolvedCorsOrigins,
+  getJwtConfig: () => ({
+    expiresIn: resolvedJwtExpiresIn,
+    issuer: resolvedJwtIssuer,
+  }),
   getPort: () => resolvedPort,
   validateEnv,
 };
