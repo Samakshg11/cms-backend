@@ -3,6 +3,7 @@ const allowedNodeEnvs = new Set(["development", "test", "production"]);
 const DEFAULT_PORT = 5000;
 
 let resolvedPort = DEFAULT_PORT;
+let resolvedCorsOrigins = ["*"];
 
 const readEnv = (name) => {
   const value = process.env[name];
@@ -41,15 +42,23 @@ const validateEnv = () => {
 
     resolvedPort = parsedPort;
     process.env.PORT = String(parsedPort);
-    return;
+  } else {
+    resolvedPort = DEFAULT_PORT;
+    process.env.PORT = String(DEFAULT_PORT);
   }
 
-  resolvedPort = DEFAULT_PORT;
-  process.env.PORT = String(DEFAULT_PORT);
+  const rawCorsOrigin = readEnv("CORS_ORIGIN");
+  resolvedCorsOrigins = rawCorsOrigin
+    ? rawCorsOrigin
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+    : ["*"];
 };
 
 module.exports = {
   DEFAULT_PORT,
+  getCorsOrigins: () => resolvedCorsOrigins,
   getPort: () => resolvedPort,
   validateEnv,
 };
