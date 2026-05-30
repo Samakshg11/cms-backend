@@ -38,8 +38,18 @@ module.exports = async (req, res, next) => {
 
     next();
   } catch (error) {
-    error.statusCode = 401;
-    error.message = "Invalid token";
-    next(error);
+    if (error.name === "TokenExpiredError") {
+      error.statusCode = 401;
+      error.message = "Token has expired";
+      return next(error);
+    }
+
+    if (error.name === "JsonWebTokenError") {
+      error.statusCode = 401;
+      error.message = "Invalid token";
+      return next(error);
+    }
+
+    return next(error);
   }
 };
