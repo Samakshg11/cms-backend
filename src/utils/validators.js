@@ -12,9 +12,18 @@ const isStrongEnoughPassword = (value) =>
 
 const isValidOtp = (value) => typeof value === "string" && otpRegex.test(value.trim());
 
+/**
+ * Return an array of required field names that are missing or empty from `obj`.
+ * Example: `missingFields(req.body, ['email','password'])` -> ['password']
+ */
+const missingFields = (obj, fields = []) => {
+  return fields.filter((f) => !(obj && Object.prototype.hasOwnProperty.call(obj, f) && String(obj[f]).trim()));
+};
+
 module.exports = {
   isValidEmail,
   isStrongEnoughPassword,
   isValidOtp,
   normalizeEmail,
+  missingFields,
 };
