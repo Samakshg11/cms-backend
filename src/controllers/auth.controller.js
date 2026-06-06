@@ -25,6 +25,11 @@ const createAuthToken = (userId) => {
   });
 };
 
+/**
+ * Send an OTP to the provided email.
+ * Expects `req.body.email`.
+ * Rate-limits repeated requests and stores an expiring OTP.
+ */
 exports.sendOTP = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email);
   const otp = otpGenerator.generate(6, {
@@ -53,6 +58,10 @@ exports.sendOTP = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Verify an OTP for an email and mark the user as verified.
+ * Expects `req.body.email` and `req.body.otp`.
+ */
 exports.verifyOTP = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email);
   const { otp } = req.body;
@@ -83,6 +92,9 @@ exports.verifyOTP = asyncHandler(async (req, res) => {
   res.json({ message: "Email verified successfully" });
 });
 
+/**
+ * Sign up a new user. Expects `req.body.email` and `req.body.password`.
+ */
 exports.signup = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email);
   const { password } = req.body;
@@ -99,6 +111,9 @@ exports.signup = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Authenticate a user and return a JWT token. Expects `req.body.email` and `req.body.password`.
+ */
 exports.login = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email);
   const { password } = req.body;
