@@ -1,3 +1,10 @@
+/**
+ * Authentication routes
+ * - POST /send-otp    : send an OTP to an email
+ * - POST /verify-otp  : verify OTP and mark email verified
+ * - POST /signup      : create a new user
+ * - POST /login       : authenticate and receive JWT
+ */
 const router = require("express").Router();
 
 const auth = require("../controllers/auth.controller");
