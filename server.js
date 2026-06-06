@@ -2,11 +2,12 @@ require("dotenv").config();
 const app = require("./src/app");
 const connectDB = require("./src/config/db");
 const { getPort, validateEnv } = require("./src/config/env");
+const logger = require("./utils/logger");
 
 let server;
 
 const shutdown = (signal) => {
-  console.log(`Received ${signal}. Shutting down gracefully...`);
+  logger.info(`Received ${signal}. Shutting down gracefully...`);
 
   if (!server) {
     process.exit(0);
@@ -15,11 +16,12 @@ const shutdown = (signal) => {
 
   server.close((error) => {
     if (error) {
-      console.error("Error while closing server", error.message);
+      logger.error("Error while closing server", error.message);
       process.exit(1);
       return;
     }
 
+    logger.info("Shutdown complete");
     process.exit(0);
   });
 };
@@ -30,7 +32,7 @@ const startServer = async () => {
   const port = getPort();
 
   server = app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    logger.info(`Server running on port ${port}`);
   });
 };
 
@@ -38,7 +40,6 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 startServer().catch((error) => {
-  console.error("Failed to start server");
-  console.error(error.message);
+  logger.error("Failed to start server", error.message);
   process.exit(1);
 });
