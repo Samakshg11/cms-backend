@@ -5,7 +5,7 @@ const DEFAULT_JWT_EXPIRES_IN = "7d";
 const DEFAULT_JWT_ISSUER = "cms-backend";
 
 let resolvedPort = DEFAULT_PORT;
-let resolvedCorsOrigins = ["*"];
+let resolvedCorsOrigins = "*";
 let resolvedJwtExpiresIn = DEFAULT_JWT_EXPIRES_IN;
 let resolvedJwtIssuer = DEFAULT_JWT_ISSUER;
 
@@ -52,12 +52,16 @@ const validateEnv = () => {
   }
 
   const rawCorsOrigin = readEnv("CORS_ORIGIN");
-  resolvedCorsOrigins = rawCorsOrigin
-    ? rawCorsOrigin
-        .split(",")
-        .map((origin) => origin.trim())
-        .filter(Boolean)
-    : ["*"];
+  if (!rawCorsOrigin || rawCorsOrigin === "*") {
+    resolvedCorsOrigins = "*";
+  } else {
+    const origins = rawCorsOrigin
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+
+    resolvedCorsOrigins = origins.length > 0 ? origins : "*";
+  }
 
   resolvedJwtExpiresIn = readEnv("JWT_EXPIRES_IN") || DEFAULT_JWT_EXPIRES_IN;
   resolvedJwtIssuer = readEnv("JWT_ISSUER") || DEFAULT_JWT_ISSUER;

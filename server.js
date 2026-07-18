@@ -1,8 +1,11 @@
 require("dotenv").config();
-const app = require("./src/app");
-const connectDB = require("./src/config/db");
 const { getPort, validateEnv } = require("./src/config/env");
 const logger = require("./utils/logger");
+
+validateEnv();
+
+const app = require("./src/app");
+const connectDB = require("./src/config/db");
 
 let server;
 
@@ -27,7 +30,6 @@ const shutdown = (signal) => {
 };
 
 const startServer = async () => {
-  validateEnv();
   await connectDB();
   const port = getPort();
 
