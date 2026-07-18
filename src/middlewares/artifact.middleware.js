@@ -1,3 +1,13 @@
+const parsePositiveInteger = (value, { min = 1, max = Number.MAX_SAFE_INTEGER } = {}) => {
+  const parsedValue = Number(value);
+
+  if (!Number.isInteger(parsedValue) || parsedValue < min || parsedValue > max) {
+    return null;
+  }
+
+  return parsedValue;
+};
+
 const validateCreateArtifact = (req, res, next) => {
   const { title, description } = req.body;
 
@@ -30,13 +40,13 @@ const validateCreateArtifact = (req, res, next) => {
 const validateArtifactQuery = (req, res, next) => {
   const { page, limit, q } = req.query;
 
-  if (page !== undefined && (!Number.isInteger(Number(page)) || Number(page) < 1)) {
+  if (page !== undefined && parsePositiveInteger(page) === null) {
     return res.status(400).json({ message: "page must be a positive integer" });
   }
 
   if (
     limit !== undefined &&
-    (!Number.isInteger(Number(limit)) || Number(limit) < 1 || Number(limit) > 100)
+    parsePositiveInteger(limit, { min: 1, max: 100 }) === null
   ) {
     return res.status(400).json({ message: "limit must be an integer between 1 and 100" });
   }
@@ -50,11 +60,11 @@ const validateArtifactQuery = (req, res, next) => {
   }
 
   if (page !== undefined) {
-    req.query.page = Number(page);
+    req.query.page = parsePositiveInteger(page);
   }
 
   if (limit !== undefined) {
-    req.query.limit = Number(limit);
+    req.query.limit = parsePositiveInteger(limit, { min: 1, max: 100 });
   }
 
   if (q !== undefined) {
