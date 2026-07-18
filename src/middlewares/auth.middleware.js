@@ -1,16 +1,28 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
-module.exports = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
+const extractBearerToken = (authHeader) => {
   if (!authHeader) {
-    return res.status(401).json({ message: "Authorization header is required" });
+    return null;
   }
 
-  const [scheme, token] = authHeader.trim().split(/\s+/);
+  const [scheme, token, ...rest] = authHeader.trim().split(/\s+/);
 
-  if (scheme?.toLowerCase() !== "bearer" || !token) {
+  if (rest.length > 0) {
+    return null;
+  }
+
+  if (scheme?.toLowerCase() !== "bearer") {
+    return null;
+  }
+
+  return token || null;
+};
+
+module.exports = async (req, res, next) => {
+  const token = extractBearerToken(req.headers.authorization);
+
+  if (!token) {
     return res.status(401).json({ message: "Invalid authorization header" });
   }
 
