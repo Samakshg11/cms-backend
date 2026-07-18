@@ -1,3 +1,5 @@
+const logger = require('../../utils/logger');
+
 module.exports = (err, req, res, next) => {
   let status = err.statusCode || 500;
   let message = err.message || "Internal server error";
@@ -22,7 +24,7 @@ module.exports = (err, req, res, next) => {
   }
 
   if (status >= 500) {
-    console.error(err);
+    logger.error("Unhandled server error", req.method, req.originalUrl, err);
   }
 
   res.status(status).json({
