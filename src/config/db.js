@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const logger = require("../../utils/logger");
 
 const connectDB = async () => {
   if (!process.env.MONGO_URI) {
@@ -9,8 +10,10 @@ const connectDB = async () => {
     serverSelectionTimeoutMS: 10000,
   });
 
-  console.log(
-    `MongoDB connected: ${connection.connection.host} (${process.env.NODE_ENV || "development"})`
+  logger.info(
+    "MongoDB connected",
+    connection.connection.host,
+    process.env.NODE_ENV || "development"
   );
 
   return connection;
