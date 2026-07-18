@@ -3,10 +3,15 @@ const {
   isStrongEnoughPassword,
   isValidOtp,
   normalizeEmail,
+  missingFields,
 } = require("../utils/validators");
 
 const validateEmail = (req, res, next) => {
   const { email } = req.body;
+
+  if (missingFields(req.body, ["email"]).length > 0) {
+    return res.status(400).json({ message: "Email is required" });
+  }
 
   if (!isValidEmail(email)) {
     return res.status(400).json({ message: "Please provide a valid email" });
@@ -19,6 +24,10 @@ const validateEmail = (req, res, next) => {
 const validateSignup = (req, res, next) => {
   const { password } = req.body;
 
+  if (missingFields(req.body, ["password"]).length > 0) {
+    return res.status(400).json({ message: "Password is required" });
+  }
+
   if (!isStrongEnoughPassword(password)) {
     return res
       .status(400)
@@ -28,10 +37,20 @@ const validateSignup = (req, res, next) => {
   next();
 };
 
-const validateLogin = validateSignup;
+const validateLogin = (req, res, next) => {
+  if (missingFields(req.body, ["password"]).length > 0) {
+    return res.status(400).json({ message: "Password is required" });
+  }
+
+  next();
+};
 
 const validateOtp = (req, res, next) => {
   const { otp } = req.body;
+
+  if (missingFields(req.body, ["otp"]).length > 0) {
+    return res.status(400).json({ message: "OTP is required" });
+  }
 
   if (!isValidOtp(otp)) {
     return res.status(400).json({ message: "OTP must be a 6-digit code" });
